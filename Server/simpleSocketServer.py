@@ -20,9 +20,14 @@ class EchoHandler(asyncore.dispatcher_with_send):
                 hd.send(data)
             else:
                 self.target_address = None
+                self.send("fail to send, target is down")
+        else:
+            self.send("no target")
 
     def handle_close(self):
         handler_list[self.address] = None
+        self.close()
+        print 'connection from %s lost' % repr(self.addr)
 
 
 class EchoServer(asyncore.dispatcher):
@@ -47,6 +52,9 @@ class EchoServer(asyncore.dispatcher):
                 it2 = handler_list.values()[1]
                 it1.configure_target_address(it2.address)
                 it2.configure_target_address(it1.address)
+
+    def handle_close(self):
+        self.close()
 
 
 server = EchoServer('0.0.0.0', 3344)
